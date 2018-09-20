@@ -1,6 +1,6 @@
 # test if we are in the project
 localdir=${PWD##*/}
-if [ ${localdir=} = "NAO-Foot-UV27-2018" ]; then
+if [ ${localdir=} = "NAO-Map-UV30-2018" ]; then
   echo "ok"
   #RemotePath=/home/newubu/MyApps/Nao/v-rep/nao-new-model/build/
   RemotePath=/public/share/uv27spid/
@@ -8,11 +8,11 @@ if [ ${localdir=} = "NAO-Foot-UV27-2018" ]; then
   ExternalLibNaoqiGz=naoqi-${ReleaseDate}.tgz
   ExternalLibPynaoqiGz=pynaoqi-${ReleaseDate}.tgz
   ExternalLibVrepGz=v-rep-${ReleaseDate}.tgz
-  tar xfz ${RemotePath}${ExternalLibNaoqiGz}
-  tar xfz ${RemotePath}${ExternalLibPynaoqiGz}
-  tar xfz ${RemotePath}${ExternalLibVrepGz}
+  tar xvfz ${RemotePath}${ExternalLibNaoqiGz}
+  tar xvfz ${RemotePath}${ExternalLibPynaoqiGz}
+  tar xvfz ${RemotePath}${ExternalLibVrepGz}
 else
-  echo "not in NAO-Foot-UV27-2018, try again"
+  echo "not in NAO-Map-UV30-2018, try again"
 fi
 
 
