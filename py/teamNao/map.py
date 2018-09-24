@@ -14,8 +14,8 @@ def addPoint(carte, xRob, yRob, thetaRob, rangeSonar):#on veut addPoint au reper
 	
 	point = []
 	
-	X = xRob + math.cos(thetaRob)*rangeSonar#place le point au repere du robot (cos(thetaRob+pi/2))
-	Y = yRob + math.sin(thetaRob)*rangeSonar#place le point au repere du robot (sin(thetaRob+pi/2))
+	X = xRob + math.sin(thetaRob)*rangeSonar#place le point au repere du robot (sin(thetaRob+pi/2))
+	Y = yRob + math.cos(thetaRob)*rangeSonar#place le point au repere du robot (cos(thetaRob+pi/2))
 
 	
 	point.append(X)
