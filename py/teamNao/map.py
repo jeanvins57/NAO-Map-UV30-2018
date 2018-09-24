@@ -14,8 +14,8 @@ def addPoint(carte, xRob, yRob, thetaRob, rangeSonar):#on veut addPoint au reper
 	
 	point = []
 	
-	X = xRob + math.sin(thetaRob)*rangeSonar#place le point au repere du robot (sin(thetaRob+pi/2))
-	Y = yRob + math.cos(thetaRob)*rangeSonar#place le point au repere du robot (cos(thetaRob+pi/2))
+	X = xRob + math.sin(thetaRob)*rangeSonar#place le point au repere du robot sin(thetaRob+pi/2)?
+	Y = yRob + math.cos(thetaRob)*rangeSonar#place le point au repere du robot cos(thetaRob+pi/2)?
 
 	
 	point.append(X)
@@ -37,14 +37,14 @@ def printMap(carte, size):
 		pyl.show()
 		#end plot
 
-#################
-#      TEST     #
-#################.
+################
+#     TEST     #
+################
 if __name__ == "__main__":
 	i=0
 	carte = []
 	while i<50:
-		addPoint(carte, random.randrange(10),random.randrange(10), math.pi/2,random.randrange(10))
+		addPoint(carte, random.randint(-25,25),random.randint(-25,25), math.pi/2,random.randint(0,5))
 		i+=1
 
 	printMap(carte,5)

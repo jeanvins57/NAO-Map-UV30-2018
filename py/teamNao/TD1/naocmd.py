@@ -7,7 +7,7 @@ import time
 
 class Robot:
 
-	def __init__(self, robotIP, PORT):
+	def __init__(self, robotIP, PORT, deltaX):
         	self.PORT =PORT
 		self.robotIP = robotIP
 	
@@ -39,24 +39,17 @@ class Robot:
 
 		self.motionProxy.wakeUp()
 		self.motionProxy.setStiffnesses("Body", 1.0)
+		self.poseInit = Pose2D(self.motionProxy.getRobotPosition(False))
+#poseInit=abs(x),abs(y),abs(theta)
+		self.deltaX = deltaX
 
 
-	def move(self):
-	
+	def move(self):#bouge de deltaX
 
-		self.sonarProxy.subscribe("SonarApp");
-	    	time.sleep(0.25)
-		valL = self.memoryProxy.getData("Device/SubDeviceList/US/Left/Sensor/Value")
-		valR = self.memoryProxy.getData("Device/SubDeviceList/US/Right/Sensor/Value")
-		print valL, valR
-		if valL < 0.5 or valR < 0.5:
-			self.motionProxy.stopMove()
-		else:
-			self.motionProxy.move(1,0,0)
+		position = self.motionProxy.getRobotPosition(False)
+		self.motionProxy.moveTo(position[0]+deltaX,position[1],position[2])
 
-		self.sonarProxy.unsubscribe("SonarApp");
-
-	def wait(self):
+	def idle(self):
 
 		self.motionProxy.move(0,0,0)
 		self.postureProxy.goToPosture("StandInit", 0.5)#Nao debout
@@ -64,17 +57,36 @@ class Robot:
 	def turnRight(self):
 	
 		self.motionProxy.move(0,0,0)
-		self.motionProxy.move(0,0,-math.pi/2)
+		position = Pose2D(self.motionProxy.getRobotPosition(False))
+		self.motionProxy.moveTo(position[0],position[1],position[2]-math.pi/2)
 
 	def turnLeft(self):
 	
 		self.motionProxy.move(0,0,0)
-		self.motionProxy.move(0,0,math.pi/2)
+		position = Pose2D(self.motionProxy.getRobotPosition(False))
+		self.motionProxy.move(position[0],position[1],position[2]+math.pi/2)
 
-	def crouch(self):
+	def end(self):
 	
 		self.motionProxy.move(0,0,0)
 		self.postureProxy.goToPosture("Crouch", 0.5)
 		self.motionProxy.setStiffnesses("Body", 0.0)
+	
+	def check(self):
+
+		self.sonarProxy.subscribe("SonarApp");
+	    	time.sleep(0.25)
+		valL = self.memoryProxy.getData("Device/SubDeviceList/US/Left/Sensor/Value")
+		valR = self.memoryProxy.getData("Device/SubDeviceList/US/Right/Sensor/Value")
+		
+		return valL, valR
+
+	def getPosition(self):#donne la position dans le repere poseInit
+
+		position = Pose2D(self.motionProxy.getRobotPosition(False))
+		position[0] = position[0]-self.poseInit[0]
+		position[1] = position[1]-self.poseInit[1]
+		position[2] = position[2]-self.poseInit[2]
+		return position
 
 
