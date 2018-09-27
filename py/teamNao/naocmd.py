@@ -47,8 +47,16 @@ class Robot:
 
 	def move(self):#bouge de deltaX
 
-		position = almath.Pose2D(self.motionProxy.getRobotPosition(False))
-		self.motionProxy.moveTo(position.x+self.deltaX,0,0)
+		self.postureProxy.goToPosture("StandInit", 0.5)#Nao debout
+		#print(position)
+		self.motionProxy.moveTo(self.deltaX,0,0,
+					[ ["MaxStepX", 0.02],         # step of 2 cm in front
+					  ["MaxStepY", 0.16],         # default value
+					  ["MaxStepTheta", 0.4],      # default value
+					  ["MaxStepFrequency", 0.0],  # low frequency
+					  ["StepHeight", 0.005],       # step height of 1 cm
+					  ["TorsoWx", 0.0],           # default value
+					  ["TorsoWy", 0.0] ])         # torso bend 0.0 rad in front
 
 	def idle(self):
 
@@ -60,14 +68,28 @@ class Robot:
 		self.motionProxy.stopMove()
 		position = almath.Pose2D(self.motionProxy.getRobotPosition(False))
 		theta = math.radians(position.theta)
-		self.motionProxy.moveTo(0,0,theta-math.pi/2)
+		self.motionProxy.moveTo(0,0,-math.pi/2,
+					[ ["MaxStepX", 0.02],         # step of 2 cm in front
+					  ["MaxStepY", 0.16],         # default value
+					  ["MaxStepTheta", 0.4],      # default value
+					  ["MaxStepFrequency", 0.0],  # low frequency
+					  ["StepHeight", 0.01],       # step height of 1 cm
+					  ["TorsoWx", 0.0],           # default value
+					  ["TorsoWy", 0.0] ])         # torso bend 0.0 rad in front
 
 	def turnLeft(self):
 	
 		self.motionProxy.stopMove()
 		position = almath.Pose2D(self.motionProxy.getRobotPosition(False))
 		theta = math.radians(position.theta)
-		self.motionProxy.moveTo(0,0,theta+math.pi/2)
+		self.motionProxy.moveTo(0,0,math.pi/2, 
+					[ ["MaxStepX", 0.02],         # step of 2 cm in front
+					  ["MaxStepY", 0.16],         # default value
+					  ["MaxStepTheta", 0.4],      # default value
+					  ["MaxStepFrequency", 0.0],  # low frequency
+					  ["StepHeight", 0.01],       # step height of 1 cm
+					  ["TorsoWx", 0.0],           # default value
+					  ["TorsoWy", 0.0] ])         # torso bend 0.0 rad in front
 
 	def end(self):
 	
