@@ -3,6 +3,8 @@ import time
 import sys
 import select
 import naocmd
+import map
+import math
 
 # use keyboard to control the fsm
 #  w : event "Wait"
@@ -11,8 +13,13 @@ import naocmd
 
 delay=0.1
 
+
+
 # global variables
 f = fsm.fsm();  # finite state machine
+naorob = naocmd.Robot("172.20.13.167", 9559,0.15)
+carte = []
+
 def isData():
     return select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], [])
 
@@ -34,6 +41,9 @@ def getKey():
 # example of a function doRun 
 def doIdle():
     print "Robot a l'etat initial"   # do some work
+    
+    naorob.idle()
+	
     time.sleep(delay)
     newKey,val = getKey(); # check if key pressed
     event="wait" # define the default event
@@ -41,72 +51,100 @@ def doIdle():
         if val=="g":
             event="go"
         if val=="o":
-            event="off"# new event if key "w" is pressed
+            event="bye"# new event if key "w" is pressed
     return event # return event to be able to define the transition
 # define here all the other functions (actions) of the fsm 
 # ...
 def domove():
-    print "Robot pret"
+    print "Robot move"
+    event="detect"
     time.sleep(delay)
-    newKey,val = getKey(); 
-    event="go"
-    naocmd.Marche()
+    naorob.move()
+
+    newKey,val = getKey();
     if newKey :
         if val=="w":
             event="wait"
-    time.sleep(delay)
-    event="detect"
+
     return event 
 
 def dowait():
     print "Robot pret"
     time.sleep(delay)
-    newKey,val = getKey(); 
+
     event="wait"
-    naocmd.assis()
+
+    naorob.idle()
+    map.printMap(carte,5)
+
     return event 
 
 
 def doleft():
     print "Robot tourne a gauche"
     time.sleep(delay) 
+    naorob.turnLeft()
+    newKey,val = getKey(); # check if key pressed
     event="left"
-    naocmd.Gauche()
+
+    if newKey :
+	if val=="w":
+	    event="wait"
+
+
     time.sleep(delay)
     event="detect"
     return event 
 
 def doright():
-    print "Robot tourne a gauche"
+    print "Robot tourne a droite"
     time.sleep(delay) 
+    naorob.turnRight()
+    newKey,val = getKey(); # check if key pressed
     event="right"
-    naocmd.Droite()
+
+    if newKey :
+        if val=="w":
+            event="wait"
+
+
+
     time.sleep(delay)
     event="detect"
     return event 
 
 def docheck():
-    a,b = naocmd.sonar()
+    a,b = naorob.check()
     print "Robot Check"
     time.sleep(delay)
-    event="detect"
+    newKey,val = getKey(); # check if key pressed
+    event="go"
     if a < 0.50 or b < 0.50:
         if a < b:
+	    position = naorob.getPosition()
+	    print position, a,b
+	    map.addPoint(carte, -position.y, position.x, position.theta+math.pi/2,(a+b)/2)
             event="right"
         if (a > b):
+	    position = naorob.getPosition()
+	    print position, a,b
+	    map.addPoint(carte, -position.y, position.x, position.theta+math.pi/2,(a+b)/2)
             event="left"
-    if(a > 0.50 and b > 0.50):        
-        event="go"
+
+    if newKey :
+        if val=="w":
+            event="wait"
     
     return event  
 
 
 def doOff():
-
-    naocmd.Fin()
     print "Robot Eteint"   # do some work
     time.sleep(delay)
     newKey,val = getKey(); # check if key pressed
+
+    naorob.end()
+
     event="bye" # define the default event
     if newKey:
         if val=="o":
@@ -145,12 +183,13 @@ if __name__== "__main__":
     f.add_transition ("check","turnRight","right",doright)
     f.add_transition ("check","turnLeft","left",doleft)
     f.add_transition ("turnLeft","check","detect",docheck)
+    f.add_transition ("turnLeft","Idle","wait",dowait)
     f.add_transition ("turnRight","check","detect",docheck)
+    f.add_transition ("turnRight","Idle","wait",dowait)
     f.add_transition ("move","check","detect",docheck)
     f.add_transition ("check","move","go",domove)
+    f.add_transition ("check","Idle","wait",dowait)
     f.add_transition ("move","Idle","wait",dowait)
-    f.add_transition ("gauche","Idle","s",doIdle)
-    f.add_transition ("droite","Idle","s",doIdle)
     f.add_transition ("Idle","end","bye",doOff)
     # example
     # add here all the transitions you need

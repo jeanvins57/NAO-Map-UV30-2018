@@ -1,212 +1,141 @@
-import sys
-import motion
-import time
 from naoqi import ALProxy
 import math
-import almath as m
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on  Sep 21  2018
-
-@author: Herve
-"""
-
-robotIp="localhost"
-robotPort=11212
-#robotIp="172.20.13.167"
-#robotPort=9559
-
-def Sit():
-
-# Init proxies.
-    try:
-        motionProxy = ALProxy("ALMotion", robotIp, robotPort)
-    except Exception, e:
-        print "Could not create proxy to ALMotion"
-        print "Error was: ", e
-    
-    try:
-        postureProxy = ALProxy("ALRobotPosture", robotIp, robotPort)
-    except Exception, e:
-        print "Could not create proxy to ALRobotPosture"
-        print "Error was: ", e
-    
-    motionProxy.wakeUp()
-    motionProxy.setStiffnesses("Body", 1.0)
-
-    fractSpeed=0.3
-    postureProxy.goToPosture("Crouch", fractSpeed)
-    motionProxy.setStiffnesses("Body", 0.0)
-    motionProxy.rest()
-
-    
-def Move():
-    try:
-        motionProxy = ALProxy("ALMotion", robotIp, robotPort)
-    except Exception,e:
-        print "Could not create proxy to ALMotion"
-        print "Error was: ",e
-        sys.exit(1)
-         
-    try:
-        postureProxy = ALProxy("ALRobotPosture", robotIp, robotPort)
-    except Exception, e:
-        print "Could not create proxy to ALRobotPosture"
-        print "Error was: ", e
-
-    postureProxy.goToPosture("Crouch", 0.5)#Nao debout
-    postureProxy.goToPosture("StandInit", 0.5)#Nao debout
-    
-    x  = 0.2
-    y  = 0.2
-    theta  = math.pi/2
-    #motionProxy.moveTo(x, y, theta)
-    motionProxy.move(x,0,0)
-    time.sleep(5)
-    motionProxy.move(0,0,0)
+import sys
+import time
+import almath
 
 
 
-def StiffnessOn(proxy):
-    
-     pNames = "Body"
-     pStiffnessLists = 1.5
-     pTimeLists = 1.5
-     proxy.stiffnessInterpolation(pNames, pStiffnessLists, pTimeLists) 
-    
-def TurnLeft():
-    
-    try:
-        motionProxy = ALProxy("ALMotion", robotIp, robotPort)
-    except Exception, e:
-        print "Could not create proxy to ALMotion"
-        print "Error was: ", e
+class Robot:
 
-    StiffnessOn(motionProxy)
+	def __init__(self, robotIP, PORT, deltaX):
+        	self.PORT =PORT
+		self.robotIP = robotIP
+	
+		try:
+			self.motionProxy = ALProxy("ALMotion", self.robotIP, self.PORT)
+		except Exception,e:
+			print "Could not create proxy to ALMotion"
+			print "Error was: ",e
+			sys.exit(1)
 
+		try:
+			self.postureProxy = ALProxy("ALRobotPosture", self.robotIP, self.PORT)
+	   	except Exception, e:
+			print "Could not create proxy to ALRobotPosture"
+			print "Error was: ", e
 
-    motionProxy.setWalkArmsEnabled(True, True)
-    motionProxy.setMotionConfig([["ENABLE_FOOT_CONTACT_PROTECTION", True]])
-    initRobotPosition = m.Pose2D(motionProxy.getRobotPosition(False))
+		try:
+		    self.memoryProxy = ALProxy("ALMemory", self.robotIP, self.PORT)
+		except Exception, e:
+		    print "Could not create proxy to ALMemory"
+		    print "Error was: ", e
 
-    X = 0.2
-    Y = 0.0
-    Theta = math.pi/6.0
-    motionProxy.post.moveTo(X, Y, Theta)
-    motionProxy.waitUntilMoveIsFinished()
-
-  
-    endRobotPosition = m.Pose2D(motionProxy.getRobotPosition(False))
-    robotMove = m.pose2DInverse(initRobotPosition)*endRobotPosition
-    print "Robot Move :", robotMove
-    
+		try:
+		    self.sonarProxy = ALProxy("ALSonar", self.robotIP, self.PORT)
+		except Exception, e:
+		    print "Could not create proxy to ALSonar"
+		    print "Error was: ", e
 
 
-def TurnRight():
-    try:
-        motionProxy = ALProxy("ALMotion", robotIp, robotPort)
-    except Exception, e:
-        print "Could not create proxy to ALMotion"
-        print "Error was: ", e
-
-    StiffnessOn(motionProxy)
+		self.motionProxy.wakeUp()
+		self.motionProxy.setStiffnesses("Body", 1.0)
+		self.poseInit = almath.Pose2D(self.motionProxy.getRobotPosition(False))
+#poseInit=abs(x),abs(y),abs(theta)
+		self.deltaX = deltaX
 
 
-    motionProxy.setWalkArmsEnabled(True, True)
-    motionProxy.setMotionConfig([["ENABLE_FOOT_CONTACT_PROTECTION", True]])
-    initRobotPosition = m.Pose2D(motionProxy.getRobotPosition(False))
+	def move(self):#bouge de deltaX
 
-    X = 0.2
-    Y = 0.0
-    Theta = -math.pi/6.0
-    motionProxy.post.moveTo(X, Y, Theta)
-    motionProxy.waitUntilMoveIsFinished()
+		self.postureProxy.goToPosture("StandInit", 0.5)#Nao debout
+		#print(position)
+		self.motionProxy.moveTo(self.deltaX,0,0,
+					[ ["MaxStepX", 0.02],         # step of 2 cm in front
+					  ["MaxStepY", 0.16],         # default value
+					  ["MaxStepTheta", 0.4],      # default value
+					  ["MaxStepFrequency", 0.0],  # low frequency
+					  ["StepHeight", 0.005],       # step height of 1 cm
+					  ["TorsoWx", 0.0],           # default value
+					  ["TorsoWy", 0.0] ])         # torso bend 0.0 rad in front
 
-  
-    endRobotPosition = m.Pose2D(motionProxy.getRobotPosition(False))
-    robotMove = m.pose2DInverse(initRobotPosition)*endRobotPosition
-    print "Robot Move :", robotMove
-    
-    
-    
-    #fonction check
-    
-def Check():
-    try:
-        self.sonarProxy = ALProxy("ALSonar", self.robotIP, self.PORT)
-    except Exception, e:
-        print "Could not create proxy to ALSonar"
-        print "Error was: ", e
-        self.motionProxy.wakeUp()
-        self.motionProxy.setStiffnesses("Body", 1.0)
-         
-    try:
-        memoryProxy = ALProxy("ALMemory", robotIp, robotPort)
-    except Exception, e:
-        print "Could not create proxy to ALMemory"
-        print "Error was: ", e
+	def idle(self):
 
-    try:
-        sonarProxy = ALProxy("ALSonar", robotIp, robotPort)
-    except Exception, e:
-        print "Could not create proxy to ALSonar"
-        print "Error was: ", e
+		self.motionProxy.move(0,0,0)
+		self.postureProxy.goToPosture("StandInit", 0.5)#Nao debout
 
-    valL = memoryProxy.getData("Device/SubDeviceList/US/Left/Sensor/Value")
-    valR = memoryProxy.getData("Device/SubDeviceList/US/Right/Sensor/Value")
-    print valL, valR
-    sonarProxy.unsubscribe("SonarApp");
-    return valL, valR
-   
-def Idle():
-    #global robotIp, robotPort
-    #robotIp="localhost"
-    #robotPort=11212
+	def turnRight(self):
+	
+		self.motionProxy.stopMove()
+		position = almath.Pose2D(self.motionProxy.getRobotPosition(False))
+		theta = math.radians(position.theta)
+		self.motionProxy.moveTo(0,0,-math.pi/2,
+					[ ["MaxStepX", 0.02],         # step of 2 cm in front
+					  ["MaxStepY", 0.16],         # default value
+					  ["MaxStepTheta", 0.4],      # default value
+					  ["MaxStepFrequency", 0.0],  # low frequency
+					  ["StepHeight", 0.01],       # step height of 1 cm
+					  ["TorsoWx", 0.0],           # default value
+					  ["TorsoWy", 0.0] ])         # torso bend 0.0 rad in front
 
-    try:
-        motionProxy = ALProxy("ALMotion", robotIp, robotPort)
-    except Exception, e:
-        print "Could not create proxy to ALMotion"
-        print "Error was: ", e
-    
-    try:
-        postureProxy = ALProxy("ALRobotPosture", robotIp, robotPort)
-    except Exception, e:
-        print "Could not create proxy to ALRobotPosture"
-        print "Error was: ", e
-        
-    motionProxy.wakeUp()
-    motionProxy.setStiffnesses("Body", 1.0)
-    
-    fractSpeed=0.8
-    postureProxy.goToPosture("StandInit", fractSpeed)
-    #time.sleep(1.0)
-    #motionProxy.setStiffnesses("Body", 0.0)  
-    
-def End():
-    try:
-        motionProxy = ALProxy("ALMotion", robotIp, robotPort)
-    except Exception, e:
-        print "Could not create proxy to ALMotion"
-        print "Error was: ", e
-    
-    try:
-        postureProxy = ALProxy("ALRobotPosture", robotIp, robotPort)
-    except Exception, e:
-        print "Could not create proxy to ALRobotPosture"
-        print "Error was: ", e
-        
-    motionProxy.wakeUp()
-    motionProxy.setStiffnesses("Body", 1.0)
-    
-    fractSpeed=0.8
-    postureProxy.goToPosture("Crouch", fractSpeed)
-    time.sleep(1.0)
-    motionProxy.setStiffnesses("Body", 0.0)  
+	def turnLeft(self):
+	
+		self.motionProxy.stopMove()
+		position = almath.Pose2D(self.motionProxy.getRobotPosition(False))
+		theta = math.radians(position.theta)
+		self.motionProxy.moveTo(0,0,math.pi/2, 
+					[ ["MaxStepX", 0.02],         # step of 2 cm in front
+					  ["MaxStepY", 0.16],         # default value
+					  ["MaxStepTheta", 0.4],      # default value
+					  ["MaxStepFrequency", 0.0],  # low frequency
+					  ["StepHeight", 0.01],       # step height of 1 cm
+					  ["TorsoWx", 0.0],           # default value
+					  ["TorsoWy", 0.0] ])         # torso bend 0.0 rad in front
 
+	def end(self):
+	
+		self.motionProxy.move(0,0,0)
+		self.postureProxy.goToPosture("Crouch", 0.5)
+		self.motionProxy.setStiffnesses("Body", 0.0)
+	
+	def check(self):
+
+		self.sonarProxy.subscribe("SonarApp");
+	    	time.sleep(0.25)
+		valL = self.memoryProxy.getData("Device/SubDeviceList/US/Left/Sensor/Value")
+		valR = self.memoryProxy.getData("Device/SubDeviceList/US/Right/Sensor/Value")
+		
+		return valL, valR
+
+	def getPosition(self):#donne la position dans le repere poseInit
+
+		position = almath.Pose2D(self.motionProxy.getRobotPosition(False))
+		position.x = position.x - self.poseInit.x
+		position.y = position.y - self.poseInit.y
+		position.theta = position.theta - self.poseInit.theta
+		return position
+
+################
+#     TEST     #
+################
 if __name__ == "__main__":
-    Idle()
-    Move()
-    End()
-    
+
+	naorob = Robot("localhost", 11212, 1)
+
+	print "Init: ", naorob.poseInit
+	print "Pose: ", naorob.getPosition()
+	print "Move"
+	naorob.move()
+
+	print "Pose: ", naorob.getPosition()
+	print "Right"
+	naorob.turnRight()
+
+	print "Pose: ", naorob.getPosition()
+	print "Left"
+	naorob.turnLeft()
+
+	print "Pose: ", naorob.getPosition()
+	print "Move"
+	naorob.move()
+	print "Pose: ", naorob.getPosition()
+
