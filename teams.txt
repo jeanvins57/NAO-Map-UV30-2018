@@ -1,6 +1,6 @@
 Team's names :
 1 - 
-2 - Les Forkeurs
+2 - team_Les Forkeurs
 3 -
 
 Members of Team 1 :
@@ -8,7 +8,7 @@ Members of Team 1 :
 -
 
 Members of Team 2 :
-- Jean-Vincent KLEIN
+- Jean-VincentK
 -
 
 Members of Team 3 :
