@@ -22,4 +22,4 @@ Vous pouvez aussi le faire avec les commandes suivantes :
     tar xfz /public/share/uv27spid/naoqi-20180402.tgz
     tar xfz /public/share/uv27spid/v-rep-20180402.tgz
 
-L'équipe est à définir dans le fichier "team.txt"
+Les équipes sont à définir dans le fichier "team.txt"
